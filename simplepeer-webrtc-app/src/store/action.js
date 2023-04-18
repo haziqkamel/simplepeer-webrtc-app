@@ -17,4 +17,18 @@ export const setConnectOnlyWithAudio = (onlyWithAudio) => {
     }
 }
 
+export const setIdentity = (identity) => {
+    return {
+        type: Actions.SET_IDENTITY,
+        identity,
+    }
+}
+
+export const setRoomId = (roomId) => {
+    return {
+        type: Actions.SET_ROOM_ID,
+        roomId,
+    }
+}
+
 export default Actions;
