@@ -21,11 +21,11 @@ app.get('/api/room-exist/:roomId', (req, res) => {
 
     if (room) {
         if (room.connectedUsers.length > 3) {
-            return res.status(400).send({ roomExists: true, full: true })
+            return res.send({ roomExists: true, full: true })
         }
-        return res.status(200).send({ roomExists: true, full: false })
+        return res.send({ roomExists: true, full: false })
     }
-    return res.status(404).send({ roomExists: false });
+    return res.send({ roomExists: false });
 })
 
 const io = require('socket.io')(server, {

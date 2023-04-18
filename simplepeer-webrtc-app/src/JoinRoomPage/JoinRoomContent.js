@@ -6,7 +6,7 @@ import { setConnectOnlyWithAudio } from '../store/action'
 import ErrorMessage from './ErrorMessage'
 import JoinRoomButtons from './JoinRoomButtons'
 import { getRoomExists } from '../utils/api'
-import { useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const JoinRoomContent = (props) => {
 
@@ -15,7 +15,7 @@ const JoinRoomContent = (props) => {
     const [nameValue, setNameValue] = useState('')
     const [errorMessage, setErrorMessage] = useState(null)
 
-    const location = useLocation()
+    const navigate = useNavigate()
 
     const handleJoinRoom = async () => {
         if (isRoomHost) {
@@ -35,20 +35,20 @@ const JoinRoomContent = (props) => {
                 setErrorMessage('Max participant reached!. Please try again later')
             }
             // Save meeting ID in redux store.
-            location('/room')
+            navigate('/room')
         } else {
             setErrorMessage('Room not found. Incorrect meeting ID')
         }
     }
 
     const createRoom = () => {
-        location('/room')
+        navigate('/room')
     }
 
     return <>
         <JoinRoomInputs
             roomIdValue={roomIdValue}
-            etRoomIdValue={setRoomIdValue}
+            setRoomIdValue={setRoomIdValue}
             nameValue={nameValue}
             setNameValue={setNameValue}
             isRoomHost={isRoomHost}
@@ -62,7 +62,7 @@ const JoinRoomContent = (props) => {
     </>
 }
 
-const mapStoreSatateToProps = (state) => {
+const mapStoreStateToProps = (state) => {
     return {
         ...state,
     }
@@ -74,4 +74,4 @@ const mapActionsToProps = (dispatch) => {
     }
 }
 
-export default connect(mapStoreSatateToProps, mapActionsToProps)(JoinRoomContent)
+export default connect(mapStoreStateToProps, mapActionsToProps)(JoinRoomContent)
