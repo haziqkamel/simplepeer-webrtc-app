@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid')
 const cors = require('cors')
 const twilio = require('twilio')
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5002
 
 const app = express()
 const server = http.createServer(app);
@@ -34,6 +34,10 @@ const io = require('socket.io')(server, {
         method: ['GET', 'POST']
     }
 });
+
+io.on('connection', (socket) => {
+    console.log(`User connected ${socket.id}`)
+})
 
 server.listen(PORT, () => {
     console.log(`Listening on ${PORT}`)
