@@ -1,44 +1,53 @@
-import React from "react"
+import React from "react";
+import { connect } from "react-redux";
 
-const dummyParticipants = [
-    {
-        identity: 'Jake'
-    },
-    {
-        identity: 'Paul'
-    },
-    {
-        identity: 'Test'
-    },
-    {
-        identity: 'Tester'
-    }
-]
+// const dummyParticipants = [
+//   {
+//     identity: "Jake",
+//   },
+//   {
+//     identity: "Paul",
+//   },
+//   {
+//     identity: "Test",
+//   },
+//   {
+//     identity: "Tester",
+//   },
+// ];
 
 const SingleParticipants = (props) => {
-    const { identity, lastItem, participant } = props;
+  const { identity, lastItem, participant } = props;
 
-    return <>
-        <p className="participants_paragraph">{identity}</p>
-        {!lastItem && <span className="participants_separator_line" />}
+  return (
+    <>
+      <p className="participants_paragraph">{identity}</p>
+      {!lastItem && <span className="participants_separator_line" />}
     </>
-}
+  );
+};
 
-const Participants = () => {
-    return (
-        <div className="participants_container">
-            {dummyParticipants.map((participant, index) => {
-                return (
-                    <SingleParticipants
-                        key={participant.identity}
-                        lastItem={dummyParticipants.length === index + 1}
-                        participant={participant}
-                        identity={participant.identity}
-                    />
-                )
-            })}
-        </div>
-    )
-}
+const Participants = ({ participants }) => {
+  return (
+    <div className="participants_container">
+      {participants.map((participant, index) => {
+        return (
+          <SingleParticipants
+            key={participant.identity}
+            lastItem={participants.length === index + 1}
+            participant={participant}
+            identity={participant.identity}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
-export default Participants
+const mapStoreStateToProps = (state) => {
+  return {
+    ...state,
+  };
+};
+
+export default connect(mapStoreStateToProps)(Participants);
