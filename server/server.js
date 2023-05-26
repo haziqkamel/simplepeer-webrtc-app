@@ -126,12 +126,15 @@ const disconnectHandler = (socket) => {
     // user leave socket io room
     socket.leave(user.roomId);
 
-    // emit an event to rest of the users which left in the room new connectedUsers in room
-    io.to(room.id).emit("room-update", {
-      connectedUsers: room.connectedUsers,
-    });
-
-    //TODO: close the room if users in the room is 0
+    if (room.connectedUsers.length > 0) {
+      // emit an event to rest of the users which left in the room new connectedUsers in room
+      io.to(room.id).emit("room-update", {
+        connectedUsers: room.connectedUsers,
+      });
+    } else {
+      // Update the rooms array and remove room with 0 users
+      rooms = rooms.filter(room => room.id !== room.id)
+    }
   }
 };
 
