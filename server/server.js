@@ -48,6 +48,10 @@ io.on("connection", (socket) => {
   socket.on("join-room", (data) => {
     joinRoomHandler(data, socket);
   });
+
+  socket.on("disconnect", () => {
+    disconnectHandler(socket);
+  });
 });
 
 //* Socket IO Handler
@@ -60,7 +64,7 @@ const createNewRoomHandler = (data, socket) => {
   const newUser = {
     identity,
     id: uuidv4(),
-    socket: socket.id,
+    socketId: socket.id,
     roomId: roomId,
   };
   console.log(newUser);
@@ -104,6 +108,31 @@ const joinRoomHandler = (data, socket) => {
   connectedUsers = [...connectedUsers, newUser];
 
   io.to(room.id).emit("room-update", { connectedUsers: room.connectedUsers });
+};
+
+const disconnectHandler = (socket) => {
+  // Find if user has been registered
+  const user = connectedUsers.find((user) => user.socketId === socket.id);
+
+  if (user) {
+    // Find if the user room available in room array
+    const room = rooms.find((room) => room.id === user.roomId);
+
+    // update the room users by remove the user that are leaving
+    room.connectedUsers = room.connectedUsers.filter(
+      (user) => user.socketId !== socket.id
+    );
+
+    // user leave socket io room
+    socket.leave(user.roomId);
+
+    // emit an event to rest of the users which left in the room new connectedUsers in room
+    io.to(room.id).emit("room-update", {
+      connectedUsers: room.connectedUsers,
+    });
+
+    //TODO: close the room if users in the room is 0
+  }
 };
 
 server.listen(PORT, () => {
