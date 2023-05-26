@@ -28,6 +28,7 @@ app.get("/api/room-exist/:roomId", (req, res) => {
   return res.send({ roomExists: false });
 });
 
+// MARK:- Socket IO Server
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -35,11 +36,17 @@ const io = require("socket.io")(server, {
   },
 });
 
+// Listen on "connection"
 io.on("connection", (socket) => {
   console.log(`User connected ${socket.id}`);
 
+  // Listen to on "create-new-room"
   socket.on("create-new-room", (data) => {
     createNewRoomHandler(data, socket);
+  });
+
+  socket.on("join-room", (data) => {
+    joinRoomHandler(data, socket);
   });
 });
 
@@ -48,6 +55,7 @@ const createNewRoomHandler = (data, socket) => {
   const { identity } = data;
   // Generate Random RoomId
   const roomId = uuidv4();
+  console.log(roomId);
   // Create New User
   const newUser = {
     identity,
@@ -55,6 +63,7 @@ const createNewRoomHandler = (data, socket) => {
     socket: socket.id,
     roomId: roomId,
   };
+  console.log(newUser);
   // Push that user to connectedUser
   connectedUsers = [...connectedUsers, newUser];
   // Create New Room
@@ -64,13 +73,37 @@ const createNewRoomHandler = (data, socket) => {
   };
   // Join Socket IO room
   socket.join(roomId);
+  // Push newRoom to rooms
   rooms = [...rooms, newRoom];
 
-  // emit to that client which created that room RoomId
+  // Socket Emit "room-id"
   socket.emit("room-id", { roomId });
 
-  // emit an event to all users connected to that room about new users which are inside the room
+  // Socket Emit "room-update"
   socket.emit("room-update", { connectedUsers: newRoom.connectedUsers });
+};
+
+const joinRoomHandler = (data, socket) => {
+  const { identity, roomId } = data;
+
+  const newUser = {
+    identity,
+    id: uuidv4(),
+    socketId: socket.id,
+    roomId,
+  };
+
+  // Join Room as new user that pass roomId
+  const room = rooms.find((room) => room.id == roomId);
+  room.connectedUsers = [...room.connectedUsers, newUser];
+
+  // Join SocketIO room
+  socket.join(room.id);
+
+  // Add newUser to connectedUser array
+  connectedUsers = [...connectedUsers, newUser];
+
+  io.to(room.id).emit("room-update", { connectedUsers: room.connectedUsers });
 };
 
 server.listen(PORT, () => {

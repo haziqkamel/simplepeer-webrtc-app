@@ -10,7 +10,7 @@ const IntroductionPage = ({ setIsRoomHostAction }) => {
 
   useEffect(() => {
     setIsRoomHostAction(false)
-  })
+  }, [setIsRoomHostAction])
 
   return (
     <div className='introduction_page_container'>

@@ -15,7 +15,8 @@ const RoomPage = ({ roomId, identity, isRoomHost, showOverlay }) => {
       identity,
       roomId
     );
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="room_container">
