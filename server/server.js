@@ -52,6 +52,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     disconnectHandler(socket);
   });
+
+  socket.on("conn-signal", (data) => {
+    signalingHandler(data, socket);
+  });
 });
 
 //* Socket IO Handler
@@ -107,6 +111,17 @@ const joinRoomHandler = (data, socket) => {
   // Add newUser to connectedUser array
   connectedUsers = [...connectedUsers, newUser];
 
+  // emit to all users which are already in the room to prepare peer connection
+  room.connectedUsers.forEach((user) => {
+    if (user.socketId !== socket.id) {
+      const data = {
+        connUserSocketId: socket.id,
+      };
+      // emit to all users that not of current socket to prepare connection
+      io.to(user.socketId).emit("conn-prepare", data);
+    }
+  });
+
   io.to(room.id).emit("room-update", { connectedUsers: room.connectedUsers });
 };
 
@@ -133,9 +148,16 @@ const disconnectHandler = (socket) => {
       });
     } else {
       // Update the rooms array and remove room with 0 users
-      rooms = rooms.filter(room => room.id !== room.id)
+      rooms = rooms.filter((room) => room.id !== room.id);
     }
   }
+};
+
+const signalingHandler = (data, socket) => {
+  const { connUserSocketId, signal } = data;
+
+  const signalingData = { signal, connUserSocketId: socket.id };
+  io.to(connUserSocketId).emit("conn-signal", signalingData);
 };
 
 server.listen(PORT, () => {
