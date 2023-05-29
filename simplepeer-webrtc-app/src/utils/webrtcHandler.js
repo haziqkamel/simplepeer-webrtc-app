@@ -84,6 +84,35 @@ export const handleSignalingData = (data) => {
   peers[data.connUserSocketId].signal(data.signal);
 };
 
+export const removePeerConnection = (data) => {
+  const { socketId } = data;
+  console.log(`remove peer ${socketId}`);
+
+  const videoContainer = document.getElementById(socketId);
+  const videoElement = document.getElementById(`${socketId}-video`);
+
+  // TODO: to debug issue when user left room error
+  if (videoContainer && videoElement) {
+    const tracks = videoElement.srcObject.getTracks();
+
+    tracks.forEach((track) => track.stop());
+
+    // Destroy the peers connection of the socketId
+    if (peers[socketId]) {
+      peers[socketId].destroy();
+    }
+    // Delete peers from array
+    delete peers[socketId];
+
+    // Remove element
+    videoElement.srcObject = null;
+    videoContainer.removeChild(videoElement);
+
+    // Remove container
+    videoContainer.parentNode.removeChild(videoContainer);
+  }
+};
+
 // MARK:- Managing Video Stream
 const showLocalVideoPreview = (stream) => {
   // Show local video preview
