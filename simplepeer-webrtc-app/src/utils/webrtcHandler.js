@@ -5,7 +5,11 @@ import Peer from "simple-peer";
 
 const defaultConstraints = {
   audio: true,
-  video: true,
+  // Constraints the video quality for development
+  video: {
+    width: "480",
+    height: "360",
+  },
 };
 
 let localStream;
@@ -104,4 +108,23 @@ const showLocalVideoPreview = (stream) => {
 
 const addStream = (stream, connUserSocketId) => {
   // display incoming streams
+  const videosContainer = document.getElementById("videos_portal");
+  const videoContainer = document.createElement("div");
+
+  videoContainer.id = connUserSocketId;
+
+  videoContainer.classList.add("video_track_container");
+  const videoElement = document.createElement("video");
+  videoElement.autoplay = true;
+  // videoElement.muted = true;
+  videoElement.srcObject = stream;
+
+  videoElement.id = `${connUserSocketId}-video`;
+
+  videoElement.onloadedmetadata = () => {
+    videoElement.play();
+  };
+
+  videoContainer.appendChild(videoElement);
+  videosContainer.appendChild(videoContainer);
 };
