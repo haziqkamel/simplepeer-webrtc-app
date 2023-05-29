@@ -1,23 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 
-// const dummyParticipants = [
-//   {
-//     identity: "Jake",
-//   },
-//   {
-//     identity: "Paul",
-//   },
-//   {
-//     identity: "Test",
-//   },
-//   {
-//     identity: "Tester",
-//   },
-// ];
-
 const SingleParticipants = (props) => {
-  const { identity, lastItem, participant } = props;
+  const { identity, lastItem } = props;
 
   return (
     <>
