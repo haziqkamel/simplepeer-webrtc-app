@@ -33,10 +33,6 @@ export const getLocalPreviewAndInitRoomConnection = (
     });
 };
 
-const showLocalVideoPreview = (stream) => {
-  // Show local video preview
-};
-
 // Implementation of SimplePeer - Simple WebRTC video, voice, and data channels
 let peers = {};
 let streams = [];
@@ -82,6 +78,28 @@ export const prepareNewPeerConnection = (connUserSocketId, isInitiator) => {
 export const handleSignalingData = (data) => {
   // Add Signaling Data to Peer Connection
   peers[data.connUserSocketId].signal(data.signal);
+};
+
+// MARK:- Managing Video Stream
+const showLocalVideoPreview = (stream) => {
+  // Show local video preview
+  const videosContainer = document.getElementById("videos_portal");
+  videosContainer.classList.add("videos_portal_styles");
+
+  const videoContainer = document.createElement("div");
+  videoContainer.classList.add("video_track_container");
+
+  const videoElement = document.createElement("video");
+  videoElement.autoplay = true;
+  videoElement.muted = true;
+  videoElement.srcObject = stream;
+
+  videoElement.onloadedmetadata = () => {
+    videoElement.play();
+  };
+
+  videoContainer.appendChild(videoElement);
+  videosContainer.appendChild(videoContainer);
 };
 
 const addStream = (stream, connUserSocketId) => {
