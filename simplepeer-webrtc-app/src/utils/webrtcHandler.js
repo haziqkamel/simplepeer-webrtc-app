@@ -125,6 +125,14 @@ const addStream = (stream, connUserSocketId) => {
     videoElement.play();
   };
 
+  videoElement.addEventListener("click", () => {
+    if (videoElement.classList.contains("full_screen")) {
+      videoElement.classList.remove("full_screen");
+    } else {
+      videoElement.classList.add("full_screen");
+    }
+  });
+
   videoContainer.appendChild(videoElement);
   videosContainer.appendChild(videoContainer);
 };
