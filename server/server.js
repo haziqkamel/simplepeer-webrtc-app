@@ -56,6 +56,10 @@ io.on("connection", (socket) => {
   socket.on("conn-signal", (data) => {
     signalingHandler(data, socket);
   });
+
+  socket.on("conn-init", (data) => {
+    initializeConnectionHandler(data, socket);
+  });
 });
 
 //* Socket IO Handler
@@ -158,6 +162,14 @@ const signalingHandler = (data, socket) => {
 
   const signalingData = { signal, connUserSocketId: socket.id };
   io.to(connUserSocketId).emit("conn-signal", signalingData);
+};
+
+// Information from clients which are already in room that have prepare for incoming connection
+const initializeConnectionHandler = (data, socket) => {
+  const { connUserSocketId } = data;
+
+  const initData = { connUserSocketId: socket.id };
+  io.to(connUserSocketId).emit("conn-init", initData);
 };
 
 server.listen(PORT, () => {
