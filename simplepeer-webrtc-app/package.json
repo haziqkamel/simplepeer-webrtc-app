@@ -17,6 +17,12 @@
     "socket.io-client": "^4.6.1",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "react-error-overlay": "6.0.9"
+  },
+  "overrides": {
+    "react-error-overlay": "6.0.9"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

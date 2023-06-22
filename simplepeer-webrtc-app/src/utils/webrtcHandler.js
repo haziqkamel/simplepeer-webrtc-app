@@ -1,4 +1,4 @@
-import { setShowOverlay } from "../store/action";
+import { setMessages, setShowOverlay } from "../store/action";
 import store from "../store/store";
 import * as wss from "./wss";
 import Peer from "simple-peer";
@@ -12,15 +12,23 @@ const defaultConstraints = {
   },
 };
 
+const onlyAudioConstraints = {
+  audio: true,
+  video: false,
+};
+
 let localStream;
 
 export const getLocalPreviewAndInitRoomConnection = (
   isRoomHost,
   identity,
-  roomId = null
+  roomId = null,
+  onlyAudio
 ) => {
+  const constraints = onlyAudio ? onlyAudioConstraints : defaultConstraints;
+
   navigator.mediaDevices
-    .getUserMedia(defaultConstraints)
+    .getUserMedia(constraints)
     .then((stream) => {
       console.log("Successfully received local stream");
       localStream = stream;
@@ -29,7 +37,9 @@ export const getLocalPreviewAndInitRoomConnection = (
       // dispatch an action to hide overlay
       store.dispatch(setShowOverlay(false));
 
-      isRoomHost ? wss.createNewRoom(identity) : wss.joinRoom(identity, roomId);
+      isRoomHost
+        ? wss.createNewRoom(identity, onlyAudio)
+        : wss.joinRoom(identity, roomId, onlyAudio);
     })
     .catch((err) => {
       console.log("Error occured when trying to get an access to local stream");
@@ -51,6 +61,8 @@ const getConfiguration = () => {
   };
 };
 
+const messengerChannel = "messenger";
+
 export const prepareNewPeerConnection = (connUserSocketId, isInitiator) => {
   const configuration = getConfiguration();
 
@@ -58,6 +70,7 @@ export const prepareNewPeerConnection = (connUserSocketId, isInitiator) => {
     initiator: isInitiator,
     config: configuration,
     stream: localStream,
+    channelName: messengerChannel,
   });
 
   peers[connUserSocketId].on("signal", (data) => {
@@ -77,6 +90,13 @@ export const prepareNewPeerConnection = (connUserSocketId, isInitiator) => {
     addStream(stream, connUserSocketId);
     streams = [...streams, stream];
   });
+
+  // TODO: Debug or change implementation out of peers
+  // peers[connUserSocketId].on("data", (data) => {
+  //   const messageData = JSON.parse(data);
+
+  //   appendNewMessage(messageData);
+  // });
 };
 
 export const handleSignalingData = (data) => {
@@ -132,6 +152,11 @@ const showLocalVideoPreview = (stream) => {
   };
 
   videoContainer.appendChild(videoElement);
+
+  if (store.getState().connectOnlyWithAudio) {
+    videoContainer.appendChild(getAudioOnlyLabel());
+  }
+
   videosContainer.appendChild(videoContainer);
 };
 
@@ -163,7 +188,28 @@ const addStream = (stream, connUserSocketId) => {
   });
 
   videoContainer.appendChild(videoElement);
+
+  // check if other user connected only with audio
+  const participants = store.getState().participants;
+  const participant = participants.find((p) => p.socketId === connUserSocketId);
+
+  if (participant?.onlyAudio) {
+    videoContainer.appendChild(getAudioOnlyLabel(participant.identity));
+  }
+
   videosContainer.appendChild(videoContainer);
+};
+
+const getAudioOnlyLabel = (identity = "") => {
+  const labelContainer = document.createElement("div");
+  labelContainer.classList.add("label_only_audio_container");
+
+  const label = document.createElement("p");
+  label.classList.add("label_only_audio_text");
+  label.innerHTML = `Only Audio ${identity}`;
+
+  labelContainer.appendChild(label);
+  return labelContainer;
 };
 
 // MARK:- Room Buttons Functionality
@@ -206,5 +252,35 @@ const switchVideoTracks = (stream) => {
         }
       }
     }
+  }
+};
+
+// MARK:- Chatting
+const appendNewMessage = (messageData) => {
+  const messages = store.getState().messages;
+  store.dispatch(setMessages([...messages, messageData]));
+};
+
+export const sendMessageUsingDataChannel = (messageContent) => {
+  // Append the message locally
+  const identity = store.getState().identity;
+
+  const localMessageData = {
+    content: messageContent,
+    identity,
+    messageCreatedByMe: true,
+  };
+
+  appendNewMessage(localMessageData);
+
+  const messagedData = {
+    content: messageContent,
+    identity,
+  };
+
+  const stringifiedMessageData = JSON.stringify(messagedData);
+
+  for (let socketId in peers) {
+    peers[socketId].send(stringifiedMessageData);
   }
 };

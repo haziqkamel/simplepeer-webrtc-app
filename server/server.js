@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
 
 //* Socket IO Handler
 const createNewRoomHandler = (data, socket) => {
-  const { identity } = data;
+  const { identity, onlyAudio } = data;
   // Generate Random RoomId
   const roomId = uuidv4();
   console.log(roomId);
@@ -73,7 +73,8 @@ const createNewRoomHandler = (data, socket) => {
     identity,
     id: uuidv4(),
     socketId: socket.id,
-    roomId: roomId,
+    roomId,
+    onlyAudio,
   };
   console.log(newUser);
   // Push that user to connectedUser
@@ -96,18 +97,25 @@ const createNewRoomHandler = (data, socket) => {
 };
 
 const joinRoomHandler = (data, socket) => {
-  const { identity, roomId } = data;
+  const { identity, roomId, onlyAudio } = data;
 
   const newUser = {
     identity,
     id: uuidv4(),
     socketId: socket.id,
     roomId,
+    onlyAudio,
   };
 
   // Join Room as new user that pass roomId
   const room = rooms.find((room) => room.id == roomId);
-  room.connectedUsers = [...room.connectedUsers, newUser];
+
+  try {
+    room.connectedUsers = [...room.connectedUsers, newUser];
+  } catch (err) {
+    console.log(err);
+    return;
+  }
 
   // Join SocketIO room
   socket.join(room.id);

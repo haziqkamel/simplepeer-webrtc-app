@@ -3,26 +3,39 @@ import { connect } from "react-redux";
 import "./RoomPage.css";
 import ParticipantsSection from "./ParticipantsSection/ParticipantsSection";
 import VideoSection from "./VideoSection/VideoSection";
-import ChatSection from "./ChatSection/ChatSection";
+// import ChatSection from "./ChatSection/ChatSection";
 import RoomLabel from "./RoomLabel";
 import * as webrtcHandler from "../utils/webrtcHandler";
 import Overlay from "./overlay";
 
-const RoomPage = ({ roomId, identity, isRoomHost, showOverlay }) => {
+const RoomPage = ({
+  roomId,
+  identity,
+  isRoomHost,
+  showOverlay,
+  connectOnlyWithAudio,
+}) => {
   useEffect(() => {
+    if (!isRoomHost && !roomId) {
+      const siteUrl = window.location.origin;
+      window.location.href = siteUrl;
+      return;
+    }
+
     webrtcHandler.getLocalPreviewAndInitRoomConnection(
       isRoomHost,
       identity,
-      roomId
+      roomId,
+      connectOnlyWithAudio
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="room_container">
       <ParticipantsSection />
       <VideoSection />
-      <ChatSection />
+      {/* <ChatSection /> */}
       <RoomLabel roomId={roomId} />
       {showOverlay && <Overlay />}
     </div>
