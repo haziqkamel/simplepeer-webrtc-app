@@ -3,6 +3,7 @@ const http = require("http");
 const { v4: uuidv4 } = require("uuid");
 const cors = require("cors");
 const twilio = require("twilio");
+require("dotenv").config();
 
 const PORT = process.env.PORT || 5002;
 
@@ -26,6 +27,24 @@ app.get("/api/room-exist/:roomId", (req, res) => {
     return res.send({ roomExists: true, full: false });
   }
   return res.send({ roomExists: false });
+});
+
+app.get("/api/get-turn-credentials", (req, res) => {
+  const client = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
+
+  try {
+    client.tokens.create().then((token) => {
+      res.send({ token });
+    });
+  } catch (e) {
+    console.log(
+      `An error occured while fetching turn server credentials: ${e}`
+    );
+    res.send({ token: null });
+  }
 });
 
 // MARK:- Socket IO Server

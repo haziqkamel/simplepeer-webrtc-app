@@ -1,5 +1,6 @@
 import { setMessages, setShowOverlay } from "../store/action";
 import store from "../store/store";
+import { fetchTURNCredentials, getTURNIceServers } from "./turn";
 import * as wss from "./wss";
 import Peer from "simple-peer";
 
@@ -19,12 +20,14 @@ const onlyAudioConstraints = {
 
 let localStream;
 
-export const getLocalPreviewAndInitRoomConnection = (
+export const getLocalPreviewAndInitRoomConnection = async (
   isRoomHost,
   identity,
   roomId = null,
   onlyAudio
 ) => {
+  await fetchTURNCredentials();
+
   const constraints = onlyAudio ? onlyAudioConstraints : defaultConstraints;
 
   navigator.mediaDevices
@@ -52,13 +55,29 @@ let peers = {};
 let streams = [];
 
 const getConfiguration = () => {
-  return {
-    iceServers: [
-      {
-        urls: "stun:stun.l.google.com:19302", // STUN servers, can change to other STUN server which is free
-      },
-    ],
-  };
+  const turnIceServers = getTURNIceServers();
+
+  if (turnIceServers) {
+    console.log("TURN server credentials fetched");
+    console.log(turnIceServers);
+    return {
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302",
+        },
+        ...turnIceServers,
+      ],
+    };
+  } else {
+    console.warn("Using only STUN server");
+    return {
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302", // STUN servers, can change to other STUN server which is free
+        },
+      ],
+    };
+  }
 };
 
 const messengerChannel = "messenger";
